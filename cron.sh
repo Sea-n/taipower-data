@@ -14,12 +14,12 @@ main() {
 	### Download data ###
 	curl -s "$baseurl/genary.json" | jq . > "$dir/genary_$time.json"  # 各機組發電量
 	curl -s "$baseurl/loadpara.json" | jq . > "$dir/loadpara_$time.json"  # 今日電力資訊
-	curl -s "$baseurl/loadpara.txt" > "$dir/loadpara_$time.txt"  # 今日電力資訊
+	curl -s "$baseurl/loadpara.txt" | tr -d '\r' > "$dir/loadpara_$time.txt"  # 今日電力資訊
 
-	curl -s "$baseurl/genloadareaperc.csv" >> "$dir/genloadareaperc_$date.csv"  # 今日發電曲線(區域別)
+	curl -s "$baseurl/genloadareaperc.csv" | tr -d '\r' >> "$dir/genloadareaperc_$date.csv"  # 今日發電曲線(區域別)
 
-	curl -s "$baseurl/loadareas.csv" | awk -F, '$3' > "$dir/loadareas_$time.csv"  # 今日用電曲線(區域別)
-	curl -s "$baseurl/loadfueltype.csv" | awk -F, '$3' > "$dir/loadfueltype_$time.csv"  # 今日用電曲線(能源別)
+	curl -s "$baseurl/loadareas.csv" | awk -F, '$3' | tr -d '\r' > "$dir/loadareas_$time.csv"  # 今日用電曲線(區域別)
+	curl -s "$baseurl/loadfueltype.csv" | awk -F, '$3' | tr -d '\r' > "$dir/loadfueltype_$time.csv"  # 今日用電曲線(能源別)
 
 	### Remove redundant data ###
 	if [[ -e "$dir/loadareas_$prev.csv" ]]; then
