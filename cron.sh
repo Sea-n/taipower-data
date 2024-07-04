@@ -10,35 +10,36 @@ main() {
 	dir="${time:0:4}/$date"  # e.g. 2024/2024-07-03
 
 	mkdir -p "$dir/"
+	cd "$dir/" || exit 1
 
 	### Download data ###
-	curl -s "$baseurl/genary.json" | jq . > "$dir/genary_$time.json"  # 各機組發電量
-	curl -s "$baseurl/loadpara.json" | jq . > "$dir/loadpara_$time.json"  # 今日電力資訊
-	curl -s "$baseurl/loadpara.txt" | tr -d '\r' > "$dir/loadpara_$time.txt"  # 今日電力資訊
+	curl -s "$baseurl/genary.json" | jq . > "genary_$time.json"  # 各機組發電量
+	curl -s "$baseurl/loadpara.json" | jq . > "loadpara_$time.json"  # 今日電力資訊
+	curl -s "$baseurl/loadpara.txt" | tr -d '\r' > "loadpara_$time.txt"  # 今日電力資訊
 
-	curl -s "$baseurl/genloadareaperc.csv" | tr -d '\r' >> "$dir/genloadareaperc_$date.csv"  # 今日發電曲線(區域別)
+	curl -s "$baseurl/genloadareaperc.csv" | tr -d '\r' >> "genloadareaperc_$date.csv"  # 今日發電曲線 (區域別)
 
-	curl -s "$baseurl/loadareas.csv" | awk -F, '$3' | tr -d '\r' > "$dir/loadareas_$time.csv"  # 今日用電曲線(區域別)
-	curl -s "$baseurl/loadfueltype.csv" | awk -F, '$3' | tr -d '\r' > "$dir/loadfueltype_$time.csv"  # 今日用電曲線(能源別)
+	curl -s "$baseurl/loadareas.csv" | awk -F, '$3' | tr -d '\r' > "loadareas_$time.csv"  # 今日用電曲線 (區域別)
+	curl -s "$baseurl/loadfueltype.csv" | awk -F, '$3' | tr -d '\r' > "loadfueltype_$time.csv"  # 今日用電曲線 (能源別)
 
 	### Remove redundant data ###
-	if [[ -e "$dir/loadareas_$prev.csv" ]]; then
-		if [[ -z "$(comm -23 "$dir/loadareas_$prev.csv" "$dir/loadareas_$time.csv")" ]]; then
-			rm "$dir/loadareas_$prev.csv"
+	if [[ -e "loadareas_$prev.csv" ]]; then
+		if [[ -z "$(comm -23 "loadareas_$prev.csv" "loadareas_$time.csv")" ]]; then
+			rm "loadareas_$prev.csv"
 		fi
 	fi
-	if [[ -e "$dir/loadfueltype_$prev.csv" ]]; then
-		if [[ -z "$(comm -23 "$dir/loadfueltype_$prev.csv" "$dir/loadfueltype_$time.csv")" ]]; then
-			rm "$dir/loadfueltype_$prev.csv"
+	if [[ -e "loadfueltype_$prev.csv" ]]; then
+		if [[ -z "$(comm -23 "loadfueltype_$prev.csv" "loadfueltype_$time.csv")" ]]; then
+			rm "loadfueltype_$prev.csv"
 		fi
 	fi
 
 	### Archive data everyday ###
 	if [[ "${time:11}" = "23:50" ]]; then
-		mv "$dir/loadareas_$time.csv" "$dir/loadareas_$date.csv"
-		mv "$dir/loadfueltype_$time.csv" "$dir/loadfueltype_$date.csv"
+		mv "loadareas_$time.csv" "loadareas_$date.csv"
+		mv "loadfueltype_$time.csv" "loadfueltype_$date.csv"
 
-		git add "$(date +%Y)/"
+		git add .
 		git commit -m "update: $(date -Idate) data"
 		git push
 	fi
