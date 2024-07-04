@@ -34,7 +34,7 @@ main() {
 	fi
 
 	### Archive data everyday ###
-	if [[ "$(date +%H:%M)" = "23:55" ]]; then
+	if [[ "${time:11}" = "23:50" ]]; then
 		mv "$dir/loadareas_$time.csv" "$dir/loadareas_$date.csv"
 		mv "$dir/loadfueltype_$time.csv" "$dir/loadfueltype_$date.csv"
 
