@@ -13,7 +13,6 @@ main() {
 	cd "$dir/" || exit 1
 
 	### Download data ###
-	curl -s "$baseurl/genary.json" | jq . > "genary_$time.json"  # 各機組發電量
 	curl -s "$baseurl/loadpara.json" | jq . > "loadpara_$time.json"  # 今日電力資訊
 	curl -s "$baseurl/loadpara.txt" | tr -d '\r' > "loadpara_$time.txt"  # 今日電力資訊
 
@@ -21,6 +20,10 @@ main() {
 
 	curl -s "$baseurl/loadareas.csv" | awk -F, '$3' | tr -d '\r' > "loadareas_$time.csv"  # 今日用電曲線 (區域別)
 	curl -s "$baseurl/loadfueltype.csv" | awk -F, '$3' | tr -d '\r' > "loadfueltype_$time.csv"  # 今日用電曲線 (能源別)
+
+	curl -s "$baseurl/genary.json" | jq . > "genary_$time.json"  # 各機組發電量
+	echo -e "能源別\t能源子類別\t機組名稱\t裝置容量\t淨發電量\t發電量比\t備註\t空欄位" > "genary_$time.tsv"
+	jq -r '.aaData | map((.[0] |= gsub("<[^>]*>"; "")) | map(gsub("&amp;"; "&")))[] | @tsv' "genary_$time.json" >> "genary_$time.tsv"
 
 	### Remove redundant data ###
 	if [[ -e "loadareas_$prev.csv" ]]; then
