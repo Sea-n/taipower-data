@@ -12,18 +12,38 @@ main() {
 	mkdir -p "$dir/"
 	cd "$dir/" || exit 1
 
+	### Add header for 00:00 ###
+	if [[ ! -e "loadpara_$date.tsv" ]]; then  # 今日電力資訊
+		echo -e "time\treal_cap\tload\tutil_rate\tfore_cap\tfore_peak\tfore_resv\tfore_rate\tfore_indi\tfore_hour\tyday_cap\tyday_peak\tyday_resv\tyday_rate\tyday_indi\treal_peak" > "loadpara_$date.tsv"
+	fi
+	if [[ ! -e "genloadareaperc_$date.csv" ]]; then  # 今日發電曲線 (區域別)
+		echo 'datetime,gen_north,load_north,gen_central,load_central,gen_south,load_south,gen_east,load_east' > "genloadareaperc_$date.csv"
+	fi
+
+
 	### Download data ###
-	curl -s "$baseurl/loadpara.json" | jq . > "loadpara_$time.json"  # 今日電力資訊
-	curl -s "$baseurl/loadpara.txt" | tr -d '\r' > "loadpara_$time.txt"  # 今日電力資訊
 
-	curl -s "$baseurl/genloadareaperc.csv" | tr -d '\r' >> "genloadareaperc_$date.csv"  # 今日發電曲線 (區域別)
+	# 今日電力資訊
+	curl -s "$baseurl/loadpara.json" | jq . > "loadpara_$time.json"
+	curl -s "$baseurl/loadpara.txt" | tr -d '\r' > "loadpara_$time.txt"
+	jq -r '.records | add | [.publish_time[-5:], .real_hr_maxi_sply_capacity, .curr_load, .curr_util_rate,
+		.fore_maxi_sply_capacity, .fore_peak_dema_load, .fore_peak_resv_capacity,
+		.fore_peak_resv_rate, .fore_peak_resv_indicator, .fore_peak_hour_range,
+		.yday_maxi_sply_capacity, .yday_peak_dema_load, .yday_peak_resv_capacity,
+		.yday_peak_resv_rate, .yday_peak_resv_indicator, .real_hr_peak_time] | @tsv' loadpara_$time.json >> loadpara_$date.tsv
 
+	# 今日發電曲線 (區域別)
+	curl -s "$baseurl/genloadareaperc.csv" | tr -d '\r' >> "genloadareaperc_$date.csv"
 	curl -s "$baseurl/loadareas.csv" | awk -F, '$3' | tr -d '\r' > "loadareas_$time.csv"  # 今日用電曲線 (區域別)
-	curl -s "$baseurl/loadfueltype.csv" | awk -F, '$3' | tr -d '\r' > "loadfueltype_$time.csv"  # 今日用電曲線 (能源別)
 
-	curl -s "$baseurl/genary.json" | jq . > "genary_$time.json"  # 各機組發電量
+	# 今日用電曲線 (能源別)
+	curl -s "$baseurl/loadfueltype.csv" | awk -F, '$3' | tr -d '\r' > "loadfueltype_$time.csv"
+
+	# 各機組發電量
+	curl -s "$baseurl/genary.json" | jq . > "genary_$time.json"
 	echo -e "能源別\t能源子類別\t機組名稱\t裝置容量\t淨發電量\t發電量比\t備註\t空欄位" > "genary_$time.tsv"
 	jq -r '.aaData | map((.[0] |= gsub("<[^>]*>"; "")) | map(gsub("&amp;"; "&")))[] | @tsv' "genary_$time.json" >> "genary_$time.tsv"
+
 
 	### Remove redundant data ###
 	if [[ -e "loadareas_$prev.csv" ]]; then
