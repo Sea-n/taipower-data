@@ -1,0 +1,33 @@
+{
+  "success": "true",
+  "result": {
+    "resource_id": "-"
+  },
+  "records": [
+    {
+      "curr_load": "3014.1",
+      "curr_util_rate": "65"
+    },
+    {
+      "fore_maxi_sply_capacity": "4636.0",
+      "fore_peak_dema_load": "4090.0",
+      "fore_peak_resv_capacity": "546.0",
+      "fore_peak_resv_rate": "13.35",
+      "fore_peak_resv_indicator": "G",
+      "fore_peak_hour_range": "13:00-16:00",
+      "publish_time": "113.07.15(一)00:20"
+    },
+    {
+      "yday_date": "113.07.14",
+      "yday_maxi_sply_capacity": "4568.3",
+      "yday_peak_dema_load": "3612.4",
+      "yday_peak_resv_capacity": "955.9",
+      "yday_peak_resv_rate": "26.46",
+      "yday_peak_resv_indicator": "G"
+    },
+    {
+      "real_hr_maxi_sply_capacity": "4636.0",
+      "real_hr_peak_time": "2024.07.15 00:20"
+    }
+  ]
+}
